@@ -2,19 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'; // 引入axios
+import axios from 'axios'; // axiosの導入
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false); // 防止重复提交
+  const [isSubmitting, setIsSubmitting] = useState(false); // 重複送信防止
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true); // 禁用按钮，防止重复提交
+    setIsSubmitting(true); // ボタンを無効化して重複送信を防止
   
     try {
       const res = await axios.post('/api/login', {
@@ -23,57 +23,57 @@ export default function Login() {
       });
   
       if (res.status === 200) {
-        // 获取JWT并存储到localStorage
+        // JWTを取得してlocalStorageに保存
         localStorage.setItem('token', res.data.token);
   
-        // 设置全局请求头，后续请求会自动携带JWT
+        // グローバルリクエストヘッダーを設定、以降のリクエストはJWTを自動的に送信
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
   
-        // 成功登录后跳转到主界面
-        router.push('/');
+        // ログイン成功後にメイン画面にリダイレクト
+        router.push('/protect');
       }
     } catch (err) {
-      // 检查返回的状态码，显示具体的错误信息
+      // ステータスコードを確認し、具体的なエラーメッセージを表示
       if (err.response && err.response.status === 403) {
-        setError('用户名或密码错误');
+        setError('ユーザー名またはパスワードが間違っています');
       } else {
-        setError('网络错误，请稍后重试');
+        setError('ネットワークエラーです。しばらくしてから再試行してください');
       }
     } finally {
-      setIsSubmitting(false); // 恢复按钮状态
+      setIsSubmitting(false); // ボタンの状態を復元
     }
   };
 
   const handleRegister = () => {
-    router.push('/register'); // 跳转到注册页面
+    router.push('/register'); // 登録画面にリダイレクト
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>登录</h1>
+      <h1 style={styles.title}>ログイン</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
-          placeholder="用户名"
+          placeholder="ユーザー名"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={styles.input}
-          disabled={isSubmitting} // 提交时禁用输入框
+          disabled={isSubmitting} // 送信中は入力を無効化
         />
         <input
           type="password"
-          placeholder="密码"
+          placeholder="パスワード"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           style={styles.input}
-          disabled={isSubmitting} // 提交时禁用输入框
+          disabled={isSubmitting} // 送信中は入力を無効化
         />
         <button type="submit" style={styles.button} disabled={isSubmitting}>
-          {isSubmitting ? '登录中...' : '登录'}
+          {isSubmitting ? 'ログイン中...' : 'ログイン'}
         </button>
         {error && <p style={styles.error}>{error}</p>}
       </form>
-      <p>没有账号？<button onClick={handleRegister} style={styles.linkButton}>注册</button></p>
+      <p>アカウントがありませんか？<button onClick={handleRegister} style={styles.linkButton}>登録</button></p>
     </div>
   );
 }

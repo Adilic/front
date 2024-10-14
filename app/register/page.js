@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios'; // 引入axios
+import axios from 'axios'; // axiosの導入
 
 export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [email, setEmail] = useState(''); // 邮箱可为空
+  const [email, setEmail] = useState(''); // メールは任意
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false); // 防止重复提交
+  const [isSubmitting, setIsSubmitting] = useState(false); // 重複送信防止
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -18,75 +18,75 @@ export default function Register() {
     setError('');
     setSuccess('');
 
-    // 简单的表单验证，移除了对邮箱的验证
+    // 簡単なフォームバリデーション、メールのバリデーションは削除
     if (!username || !password) {
-      setError('请填写用户名和密码');
+      setError('ユーザー名とパスワードを入力してください');
       return;
     }
 
-    setIsSubmitting(true); // 禁用提交按钮
+    setIsSubmitting(true); // 送信ボタンを無効化
 
     try {
       const res = await axios.post('/api/register', {
         username,
         password,
-        email: email || undefined, // 如果邮箱为空则不传递该字段
+        email: email || undefined, // メールが空の場合、フィールドを送信しない
       });
 
       if (res.status === 200) {
-        setSuccess('注册成功！正在跳转到登录页面...');
+        setSuccess('登録成功！ログインページにリダイレクトします...');
         setTimeout(() => {
-          router.push('/login'); // 注册成功后跳转到登录页面
-        }, 2000); // 2秒后跳转
+          router.push('/login'); // 登録成功後、ログインページにリダイレクト
+        }, 2000); // 2秒後にリダイレクト
       } else {
-        setError('注册失败，请重试');
+        setError('登録に失敗しました。再試行してください');
       }
     } catch (err) {
-      setError('网络错误，请稍后重试');
+      setError('ネットワークエラーです。しばらくしてから再試行してください');
     } finally {
-      setIsSubmitting(false); // 重新启用提交按钮
+      setIsSubmitting(false); // 送信ボタンを再度有効化
     }
   };
 
   const handleLogin = () => {
-    router.push('/login'); // 返回登录页面
+    router.push('/login'); // ログインページに戻る
   };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>注册</h1>
+      <h1 style={styles.title}>登録</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
-          placeholder="用户名"
+          placeholder="ユーザー名"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={styles.input}
-          disabled={isSubmitting} // 提交时禁用
+          disabled={isSubmitting} // 送信中は無効化
         />
         <input
           type="password"
-          placeholder="密码"
+          placeholder="パスワード"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           style={styles.input}
-          disabled={isSubmitting} // 提交时禁用
+          disabled={isSubmitting} // 送信中は無効化
         />
         <input
           type="email"
-          placeholder="邮箱 (可选)"
+          placeholder="メールアドレス (任意)"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
-          disabled={isSubmitting} // 提交时禁用
+          disabled={isSubmitting} // 送信中は無効化
         />
         <button type="submit" style={styles.button} disabled={isSubmitting}>
-          {isSubmitting ? '提交中...' : '注册'}
+          {isSubmitting ? '送信中...' : '登録'}
         </button>
         {error && <p style={styles.error}>{error}</p>}
         {success && <p style={styles.success}>{success}</p>}
       </form>
-      <p>已有账号？<button onClick={handleLogin} style={styles.linkButton}>返回登录</button></p>
+      <p>すでにアカウントをお持ちですか？<button onClick={handleLogin} style={styles.linkButton}>ログインに戻る</button></p>
     </div>
   );
 }

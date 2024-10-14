@@ -16,17 +16,17 @@ export default function Home() {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1>欢迎来到用户管理系统</h1>
+        <h1>システムへようこそ</h1>
       </header>
       <main style={styles.main}>
-        <p>请先登录或注册以继续使用系统功能。</p>
+        <p>システム機能を利用するには、まずログインまたは登録してください。</p>
         <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={goToLogin}>登录</button>
-          <button style={styles.button} onClick={goToRegister}>注册</button>
+          <button style={styles.button} onClick={goToLogin}>ログイン</button>
+          <button style={styles.button} onClick={goToRegister}>登録</button>
         </div>
       </main>
       <footer style={styles.footer}>
-        <p>&copy; 2024 用户管理系统. All rights reserved.</p>
+        <p>&copy; 2024 Adilic ZHOU. All rights reserved.</p>
       </footer>
     </div>
   );
