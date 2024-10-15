@@ -1,50 +1,50 @@
-'use client'; // 添加这个语句来将组件标记为客户端组件
+'use client'; // この文を追加してコンポーネントをクライアントコンポーネントとしてマーク
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';  
 
 export default function HomePage() {
-  const [zaikoList, setZaikoList] = useState([]); // 用于存储货物在库数据
-  const router = useRouter(); // 使用 useRouter 钩子
+  const [zaikoList, setZaikoList] = useState([]); // 在庫データを保存
+  const router = useRouter(); // useRouter フックを使用
 
-  // 模拟货物在库数据
+  // 在庫データのシミュレーション
   useEffect(() => {
     const fetchZaiko = () => {
-      // 模拟数据
+      // ダミーデータ
       const dummyData = [
-        { id: 1, name: '商品A', quantity: 100, location: '仓库1' },
-        { id: 2, name: '商品B', quantity: 50, location: '仓库2' },
-        { id: 3, name: '商品C', quantity: 200, location: '仓库3' }
+        { id: 1, name: '商品A', quantity: 100, location: '倉庫1' },
+        { id: 2, name: '商品B', quantity: 50, location: '倉庫2' },
+        { id: 3, name: '商品C', quantity: 200, location: '倉庫3' }
       ];
       setZaikoList(dummyData);
     };
     fetchZaiko();
   }, []);
 
-  // 导航栏处理
+  // ナビゲーションの処理
   const handleNavigation = (path) => {
-    router.push(path); // 跳转到不同页面
+    router.push(path); // 別のページに移動
   };
 
   return (
     <div>
-      {/* 导航栏 */}
+      {/* ナビゲーションバー */}
       <nav style={styles.navbar}>
-        <div style={styles.navItem} onClick={() => handleNavigation('/')}>主页</div>
-        <div style={styles.navItem} onClick={() => handleNavigation('/users')}>用户信息</div>
-        <div style={styles.navItem} onClick={() => handleNavigation('/role_permissions')}>权限编辑</div>
+        <div style={styles.navItem} onClick={() => handleNavigation('/')}>ホーム</div>
+        <div style={styles.navItem} onClick={() => handleNavigation('/users')}>ユーザー情報</div>
+        <div style={styles.navItem} onClick={() => handleNavigation('/role_permissions')}>権限編集</div>
       </nav>
 
-      {/* 主内容 - 货物在库表 */}
+      {/* メインコンテンツ - 在庫表 */}
       <div style={styles.container}>
-        <h1 style={styles.title}>货物在库表</h1>
+        <h1 style={styles.title}>在庫表</h1>
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>货物ID</th>
-              <th style={styles.th}>货物名称</th>
-              <th style={styles.th}>库存数量</th>
-              <th style={styles.th}>存放地点</th>
+              <th style={styles.th}>在庫ID</th>
+              <th style={styles.th}>商品名</th>
+              <th style={styles.th}>在庫数量</th>
+              <th style={styles.th}>保管場所</th>
             </tr>
           </thead>
           <tbody>

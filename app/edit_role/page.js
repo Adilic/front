@@ -1,113 +1,113 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';  // 获取传递的数据
-import axios from 'axios';
+import { useRouter, useSearchParams } from 'next/navigation';  // パラメータを取得
+import axiosInstance from '../lib/axiosInstance';
 
 export default function EditRolePage() {
   const [roleName, setRoleName] = useState('');
-  const [permissionsList, setPermissionsList] = useState([]); // 可选权限
-  const [selectedPermissions, setSelectedPermissions] = useState([]); // 已选权限
+  const [permissionsList, setPermissionsList] = useState([]); // 利用可能な権限
+  const [selectedPermissions, setSelectedPermissions] = useState([]); // 選択済みの権限
   const router = useRouter();
-  const searchParams = useSearchParams();  // 获取传递的参数
+  const searchParams = useSearchParams();  // パラメータを取得
 
 
 
-// 初始化角色名称和已选权限
+// 役割名と選択済みの権限を初期化
 useEffect(() => {
     const currentRoleName = searchParams.get('roleName');
-    const currentPermissionsIds = JSON.parse(searchParams.get('permissions') || '[]'); // 获取的是 id 列表
+    const currentPermissionsIds = JSON.parse(searchParams.get('permissions') || '[]'); // 取得したのは id リスト
     setRoleName(currentRoleName);
   
-    fetchPermissions(currentPermissionsIds);  // 获取所有权限并匹配当前已选权限
+    fetchPermissions(currentPermissionsIds);  // すべての権限を取得し、現在選択済みの権限を照合
   }, []);
   
   const fetchPermissions = async (currentPermissionsIds) => {
     try {
-      const res = await axios.get('http://localhost:8080/api/get_permissions');
+      const res = await axiosInstance.get('http://localhost:8080/api/get_permissions');
       
-      // 获取完整的已选权限对象
+      // 完全な選択済み権限オブジェクトを取得
       const selectedPermissions = res.data.filter(p => currentPermissionsIds.includes(p.id));
-      setSelectedPermissions(selectedPermissions);  // 设置完整的权限对象
+      setSelectedPermissions(selectedPermissions);  // 完全な権限オブジェクトを設定
   
-      // 设置可选权限列表，排除已选权限
+      // 利用可能な権限リストを設定し、選択済みの権限を除外
       const availablePermissions = res.data.filter(p => !currentPermissionsIds.includes(p.id));
       setPermissionsList(availablePermissions);
     } catch (err) {
         if (err.response && err.response.status === 403) {
-          alert('您没有权限');
+          alert('権限がありません');
         } else {
-          console.error("访问失败:", err); // 捕获其他类型的错误
+          console.error("アクセスに失敗しました:", err); // 他のエラーをキャッチ
         }
       }
     };
   
   const handlePermissionChange = (permission) => {
     if (!selectedPermissions.some(p => p.id === permission.id)) {
-      setSelectedPermissions([...selectedPermissions, permission]);  // 添加完整对象到已选权限
-      setPermissionsList(permissionsList.filter(p => p.id !== permission.id));  // 从可选权限列表中移除
+      setSelectedPermissions([...selectedPermissions, permission]);  // 完全なオブジェクトを選択済みの権限に追加
+      setPermissionsList(permissionsList.filter(p => p.id !== permission.id));  // 利用可能な権限リストから削除
     }
   };
   
   const handleDeselectPermission = (permission) => {
-    setSelectedPermissions(selectedPermissions.filter(p => p.id !== permission.id));  // 移除已选权限
-    setPermissionsList([...permissionsList, permission]);  // 重新添加回可选权限列表
+    setSelectedPermissions(selectedPermissions.filter(p => p.id !== permission.id));  // 選択済みの権限を削除
+    setPermissionsList([...permissionsList, permission]);  // 再度利用可能な権限リストに追加
   };
   
- // 提交更新的角色和权限
+ // 更新された役割と権限を送信
  const handleUpdateRole = async () => {
-    const roleId = searchParams.get('id');  // 获取角色ID
+    const roleId = searchParams.get('id');  // 役割IDを取得
     const roleData = {
       roleName: roleName,
       permissionIds: selectedPermissions.map(p => p.id)
     };
 
-    // 打印调试信息，检查是否有 undefined
+    // デバッグ用の情報を表示、undefined が含まれているかどうかを確認
     console.log('Role ID:', roleId);
     console.log('Role Data:', roleData);
 
     try {
-      await axios.put(`http://localhost:8080/api/update_roles/${roleId}`, roleData);  // 更新角色
-      alert('Role updated successfully');
-      router.push('/role_permissions');  // 更新成功后返回角色列表
+      await axiosInstance.put(`http://localhost:8080/api/update_roles/${roleId}`, roleData);  // 役割を更新
+      alert('役割が正常に更新されました');
+      router.push('/role_permissions');  // 更新成功後、役割リストに戻る
     } catch (err) {
         if (err.response && err.response.status === 403) {
-          alert('您没有权限');
+          alert('権限がありません');
         } else {
-          console.error("访问失败:", err); // 捕获其他类型的错误
+          console.error("アクセスに失敗しました:", err); // 他のエラーをキャッチ
         }
       }
     };
 
-  // 返回角色权限界面
+  // 役割権限画面に戻る
   const handleBackToRoles = () => {
     router.push('/role_permissions');
   };
 
   return (
     <div style={styles.container}>
-      {/* 提示输入框 - 固定为当前角色名称 */}
+      {/* 入力プロンプト - 現在の役割名を固定 */}
       <div style={styles.inputSection}>
-        <label style={styles.label}>Editing Role:</label>
+        <label style={styles.label}>役割編集中:</label>
         <input
           type="text"
           value={roleName}
-          onChange={(e) => setRoleName(e.target.value)}  // 可以修改角色名称
+          onChange={(e) => setRoleName(e.target.value)}  // 役割名を変更可能
           style={styles.input}
         />
       </div>
 
-      {/* 权限选择部分 - 左右排列 */}
+      {/* 権限選択部分 - 左右に配置 */}
       <div style={styles.permissionsSection}>
-        {/* 左侧 - 已选中的权限 */}
+        {/* 左側 - 選択済みの権限 */}
         <div style={styles.middle}>
-          <h3>Selected Permissions</h3>
+          <h3>選択済みの権限</h3>
           <div style={styles.permissionsContainer}>
             {selectedPermissions.map((permission) => (
               <div
                 key={permission.id}
                 style={styles.permissionBoxSelected}
-                onClick={() => handleDeselectPermission(permission)}  // 点击取消选择
+                onClick={() => handleDeselectPermission(permission)}  // クリックで選択解除
               >
                 {permission.permissionName}
               </div>
@@ -115,15 +115,15 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* 右侧 - 可选的权限 */}
+        {/* 右側 - 利用可能な権限 */}
         <div style={styles.right}>
-          <h3>Available Permissions</h3>
+          <h3>利用可能な権限</h3>
           <div style={styles.permissionsContainer}>
             {permissionsList.map((perm) => (
               <div
                 key={perm.id}
                 style={styles.permissionBox}
-                onClick={() => handlePermissionChange(perm)}  // 点击选择
+                onClick={() => handlePermissionChange(perm)}  // クリックで選択
               >
                 {perm.permissionName}
               </div>
@@ -132,10 +132,10 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* 底部 - 提交按钮和返回按钮 */}
+      {/* 下部 - 送信ボタンと戻るボタン */}
       <div style={styles.bottom}>
-        <button onClick={handleUpdateRole} style={styles.button}>Update</button>
-        <button onClick={handleBackToRoles} style={styles.backButton}>Back to Roles</button>
+        <button onClick={handleUpdateRole} style={styles.button}>更新</button>
+        <button onClick={handleBackToRoles} style={styles.backButton}>役割リストに戻る</button>
       </div>
     </div>
   );
@@ -150,13 +150,13 @@ const styles = {
       border: '1px solid #ccc',
       borderRadius: '8px',
       backgroundColor: '#f8f9fa',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', // 添加阴影效果
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', // シャドウ効果を追加
       maxWidth: '1200px',
-      margin: '0 auto', // 居中对齐
+      margin: '0 auto', // 中央に配置
     },
     inputSection: {
       marginBottom: '20px',
-      textAlign: 'left', // 文本左对齐
+      textAlign: 'left', // テキスト左寄せ
     },
     label: {
       fontSize: '1.2rem',
@@ -170,11 +170,11 @@ const styles = {
       fontSize: '1rem',
       borderRadius: '4px',
       border: '1px solid #ccc',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // 输入框阴影
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // 入力フィールドのシャドウ
     },
     permissionsSection: {
       display: 'flex',
-      justifyContent: 'space-between', // 左右排列
+      justifyContent: 'space-between', // 左右に配置
       gap: '20px',
     },
     middle: {
@@ -196,32 +196,32 @@ const styles = {
     permissionsContainer: {
       display: 'flex',
       flexDirection: 'column',
-      maxHeight: '300px', // 限制最大高度，添加滚动条
-      overflowY: 'auto',  // 当内容过长时显示滚动条
+      maxHeight: '300px', // 最大高さを制限してスクロールバーを追加
+      overflowY: 'auto',  // 内容が長すぎる場合にスクロールバーを表示
     },
     permissionBox: {
-        padding: '8px 12px',  // 调整方块大小
+        padding: '8px 12px',  // ボックスサイズを調整
         margin: '5px 0',
-        backgroundColor: '#007bff', // 使用单一背景色
+        backgroundColor: '#007bff', // 単一の背景色
         color: 'white',
-        borderRadius: '6px',  // 较小的圆角
+        borderRadius: '6px',  // 小さめの角丸
         cursor: 'pointer',
         textAlign: 'center',
         fontWeight: 'bold',
-        transition: 'background-color 0.3s ease, transform 0.3s ease', // 平滑过渡效果
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // 添加轻微阴影
+        transition: 'background-color 0.3s ease, transform 0.3s ease', // スムーズなトランジション効果
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // 軽いシャドウを追加
       },
       permissionBoxSelected: {
-        padding: '8px 12px',  // 调整方块大小
+        padding: '8px 12px',  // ボックスサイズを調整
         margin: '5px 0',
-        backgroundColor: '#7FFFAA', // 使用单一背景色
+        backgroundColor: '#7FFFAA', // 単一の背景色
         color: 'black',
-        borderRadius: '6px',  // 较小的圆角
+        borderRadius: '6px',  // 小さめの角丸
         cursor: 'pointer',
         textAlign: 'center',
         fontWeight: 'bold',
         transition: 'background-color 0.3s ease, transform 0.3s ease',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // 添加轻微阴影
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // 軽いシャドウを追加
       },
     button: {
       padding: '12px 20px',
@@ -235,7 +235,7 @@ const styles = {
       transition: 'background-color 0.3s ease',
       boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
       display: 'inline-block',
-      marginRight: '20px', // 调整间距
+      marginRight: '20px', // スペースを調整
     },
     backButton: {
       padding: '12px 20px',
@@ -254,10 +254,9 @@ const styles = {
       marginTop: '20px',
       textAlign: 'center',
     },
-    // 悬停效果
+    // ホバー効果
     permissionBoxHover: {
-      transform: 'translateY(-3px)',  // 鼠标悬停时的轻微上升效果
-      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',  // 加强阴影
+      transform: 'translateY(-3px)',  // ホバー時の軽い上昇効果
+      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)',  // シャドウを強化
     },
   };
-

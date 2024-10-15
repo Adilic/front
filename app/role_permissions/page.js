@@ -1,87 +1,91 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // 引入 useRouter
-import axios from "axios";
+import { useRouter } from "next/navigation"; // useRouter をインポート
+import axiosInstance from '../lib/axiosInstance';
 
 export default function RolesTable() {
-  const [rolesWithPermissions, setRolesWithPermissions] = useState([]); // 存储角色和权限数据
-  const [newRole, setNewRole] = useState(""); // 新角色名称
-  const [selectedRole, setSelectedRole] = useState(""); // 选中的角色ID
-  const [selectedPermissions, setSelectedPermissions] = useState([]); // 已选的权限
-  const [permissionsList, setPermissionsList] = useState([]); // 所有权限的列表
-  const router = useRouter();  // 使用 Next.js 的 useRouter 来定义 router
-  // 组件外部的 fetchRolesAndPermissions 函数
+  const [rolesWithPermissions, setRolesWithPermissions] = useState([]); // 役割と権限データを保存
+  const [newRole, setNewRole] = useState(""); // 新しい役割名
+  const [selectedRole, setSelectedRole] = useState(""); // 選択された役割ID
+  const [selectedPermissions, setSelectedPermissions] = useState([]); // 選択された権限
+  const [permissionsList, setPermissionsList] = useState([]); // すべての権限のリスト
+  const router = useRouter();  // Next.js の useRouter を使用してルーターを定義
+
+  // コンポーネント外の fetchRolesAndPermissions 関数
   const fetchRolesAndPermissions = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/get_role_permissions");
+      const res = await axiosInstance.get("http://localhost:8080/api/get_role_permissions");
       setRolesWithPermissions(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       if (err.response && err.response.status === 403) {
-        alert('您没有权限');
+        alert('権限がありません');
       } else {
-        console.error("访问失败:", err); // 捕获其他类型的错误
+        console.error("アクセスに失敗しました:", err); // 他のエラーをキャッチ
       }
     }
   };
 
-  // 组件内部的 useEffect，用于页面加载时获取角色和权限
+  // コンポーネント内の useEffect、ページ読み込み時に役割と権限を取得
   useEffect(() => {
-    fetchRolesAndPermissions(); // 界面加载时调用
+    fetchRolesAndPermissions(); // ページロード時に呼び出す
   }, []);
 
- // 点击 "Add Role" 按钮时跳转到 "AddRole" 页面
- const handleNavigateToAddRole = () => {
-  router.push('/add_role');  // 跳转到 /add_role 页面
-};
+  // "Add Role" ボタンをクリックした時に "AddRole" ページに遷移
+  const handleNavigateToAddRole = () => {
+    router.push('/add_role');  // /add_role ページに遷移
+  };
 
-// 删除角色
-const handleDeleteRole = async (roleId) => {
-  try {
-    await axios.delete(`http://localhost:8080/api/delete_roles/${roleId}`);
-    alert('Role deleted successfully');
-    fetchRolesAndPermissions();  // 删除成功后刷新角色和权限列表
-  } catch (err) {
-    if (err.response && err.response.status === 403) {
-      alert('您没有权限');
-    } else {
-      console.error("删除失败:", err); // 捕获其他类型的错误
+  // 役割を削除
+  const handleDeleteRole = async (roleId) => {
+    try {
+      await axiosInstance.delete(`http://localhost:8080/api/delete_roles/${roleId}`);
+      alert('役割が正常に削除されました');
+      fetchRolesAndPermissions();  // 削除成功後、役割と権限リストを更新
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        alert('権限がありません');
+      } else {
+        console.error("削除に失敗しました:", err); // 他のエラーをキャッチ
+      }
     }
-  }
-};
+  };
 
- // 进入编辑模式时，跳转到编辑界面并传递当前角色信息
- const handleEditRole = (role) => {
-  const params = new URLSearchParams({
-    id: role.id,  // 传递角色ID
-    roleName: role.roleName,  // 传递角色名称
-    permissions: JSON.stringify(role.permissions.map((perm) => perm.id))  // 传递角色已有权限
-  });
+  // 編集モードに入る際、編集画面に遷移し現在の役割情報を送信
+  const handleEditRole = (role) => {
+    const params = new URLSearchParams({
+      id: role.id,  // 役割IDを送信
+      roleName: role.roleName,  // 役割名を送信
+      permissions: JSON.stringify(role.permissions.map((perm) => perm.id))  // 既存の権限を送信
+    });
   
-  // 拼接 URL 并跳转
-  router.push(`/edit_role?${params.toString()}`);
-};
-
-
+    // URLを組み合わせて遷移
+    router.push(`/edit_role?${params.toString()}`);
+  };
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Roles and Permissions</h1>
+      <div style={styles.header}>
+        <button onClick={() => router.push('/protect')} style={styles.backButton}>
+          戻る
+        </button>
+        <h1 style={styles.title}>役割と権限</h1>
+      </div>
 
-      {/* 添加新角色按钮 */}
+      {/* 新しい役割を追加ボタン */}
       <div style={styles.section}>
         <button onClick={handleNavigateToAddRole} style={styles.button}>
-          Add Role
+          役割を追加
         </button>
       </div>
 
-      {/* 角色和权限列表 */}
+      {/* 役割と権限リスト */}
       <table style={styles.table}>
         <thead>
           <tr>
-            <th style={styles.th}>Role</th>
-            <th style={styles.th}>Permissions</th>
-            <th style={styles.th}>Actions</th>
+            <th style={styles.th}>役割</th>
+            <th style={styles.th}>権限</th>
+            <th style={styles.th}>アクション</th>
           </tr>
         </thead>
         <tbody>
@@ -96,7 +100,7 @@ const handleDeleteRole = async (roleId) => {
                     </span>
                   ))
                 ) : (
-                  <span>No permissions</span>
+                  <span>権限がありません</span>
                 )}
               </td>
               <td style={styles.td}>
@@ -104,13 +108,13 @@ const handleDeleteRole = async (roleId) => {
                   onClick={() => handleEditRole(role)}
                   style={styles.button}
                 >
-                  Edit
+                  編集
                 </button>
                 <button
                   onClick={() => handleDeleteRole(role.id)}
                   style={styles.buttonDelete}
                 >
-                  Delete
+                  削除
                 </button>
               </td>
             </tr>
@@ -118,10 +122,10 @@ const handleDeleteRole = async (roleId) => {
         </tbody>
       </table>
 
-      {/* 编辑角色权限 */}
+      {/* 役割の権限を編集 */}
       {selectedRole && (
         <div style={styles.section}>
-          <h2>Edit Role Permissions</h2>
+          <h2>役割の権限を編集</h2>
           <select
             multiple
             value={selectedPermissions}
@@ -135,7 +139,7 @@ const handleDeleteRole = async (roleId) => {
             ))}
           </select>
           <button onClick={handleUpdateRolePermissions} style={styles.button}>
-            Update Permissions
+            権限を更新
           </button>
         </div>
       )}
@@ -152,12 +156,24 @@ const styles = {
     borderRadius: "8px",
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
   },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "20px",
+  },
   title: {
     fontSize: "2.5rem",
-    textAlign: "center",
-    marginBottom: "30px",
     color: "#333",
     fontWeight: "bold",
+  },
+  backButton: {
+    padding: "10px 20px",
+    backgroundColor: "#6c757d",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
   },
   section: {
     marginBottom: "20px",
@@ -209,13 +225,13 @@ const styles = {
   },
   permissionTag: {
     backgroundColor: "	#7FFFAA", // 背景色
-    color: "black", // 字体颜色
+    color: "black", // フォントの色
     borderRadius: "6px",
     padding: "5px 10px",
     marginRight: "5px",
     display: "inline-block",
     fontSize: "0.9rem",
-    whiteSpace: "nowrap", // 确保文字不会折行
+    whiteSpace: "nowrap", // テキストが折り返されないようにする
   },
   select: {
     width: "100%",
